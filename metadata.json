@@ -1,0 +1,6 @@
+{
+  "name": "Pinter Fermentation Assistant",
+  "description": "A web application to help homebrewers calculate ABV and track the fermentation and conditioning of their Pinter beers.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
