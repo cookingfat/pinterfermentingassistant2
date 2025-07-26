@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { PINTER_PRODUCTS } from '../constants';
 import BeerCard from './BeerCard';
@@ -14,16 +15,18 @@ const FermentationTracker = ({
   const [selectedBeerId, setSelectedBeerId] = useState(PINTER_PRODUCTS[0]?.id || '');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [kegColor, setKegColor] = useState('black');
+  const [kegNickname, setKegNickname] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (selectedBeerId && startDate) {
-      onAddBeer(selectedBeerId, startDate, kegColor);
+      onAddBeer(selectedBeerId, startDate, kegColor, kegNickname);
       setIsModalOpen(false);
       // Reset form
       setSelectedBeerId(PINTER_PRODUCTS[0]?.id || '');
       setStartDate(new Date().toISOString().split('T')[0]);
       setKegColor('black');
+      setKegNickname('');
     }
   };
 
@@ -114,6 +117,20 @@ const FermentationTracker = ({
                         );
                     })}
                 </div>
+            </div>
+
+            <div>
+              <label htmlFor="keg-nickname" className="block text-lg font-medium text-slate-300 mb-2">
+                Pinter's Nickname (Optional)
+              </label>
+              <input
+                id="keg-nickname"
+                type="text"
+                placeholder="e.g. &quot;Old Faithful&quot;"
+                value={kegNickname}
+                onChange={e => setKegNickname(e.target.value)}
+                className="w-full text-xl bg-slate-700/50 border-slate-600 rounded-lg p-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+              />
             </div>
             
             <div>

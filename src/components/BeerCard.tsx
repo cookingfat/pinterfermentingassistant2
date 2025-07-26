@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import Timer from './Timer';
 import Modal from './Modal';
@@ -96,13 +97,18 @@ const BeerCard = ({ beer, onUpdate, onRemove }) => {
           
           <div className="flex items-center justify-between mb-4">
             <p className="text-lg text-slate-300 shadow-black [text-shadow:_1px_1px_3px_var(--tw-shadow-color)]">{beer.style} - {beer.abv}% ABV</p>
-            <div className="flex items-center gap-2" title={`${beer.kegColor} Keg`}>
-                <span className={`w-4 h-4 rounded-full border-2 ${
-                    beer.kegColor === 'black' ? 'bg-gray-700 border-gray-500' :
-                    beer.kegColor === 'blue' ? 'bg-blue-500 border-blue-300' :
-                    'bg-red-500 border-red-300'
-                }`}></span>
-                <span className="text-base font-semibold text-slate-200 capitalize shadow-black [text-shadow:_1px_1px_3px_var(--tw-shadow-color)]">{beer.kegColor}</span>
+            <div className="text-right">
+                <div className="flex items-center gap-2 justify-end" title={`${beer.kegColor} Keg`}>
+                    <span className={`w-4 h-4 rounded-full border-2 ${
+                        beer.kegColor === 'black' ? 'bg-gray-700 border-gray-500' :
+                        beer.kegColor === 'blue' ? 'bg-blue-500 border-blue-300' :
+                        'bg-red-500 border-red-300'
+                    }`}></span>
+                    <span className="text-base font-semibold text-slate-200 capitalize shadow-black [text-shadow:_1px_1px_3px_var(--tw-shadow-color)]">{beer.kegColor} Keg</span>
+                </div>
+                {beer.kegNickname && (
+                    <p className="text-sm text-slate-400 italic shadow-black [text-shadow:_1px_1px_3px_var(--tw-shadow-color)]">"{beer.kegNickname}"</p>
+                )}
             </div>
           </div>
           

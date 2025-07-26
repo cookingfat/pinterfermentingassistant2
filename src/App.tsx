@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { PINTER_PRODUCTS } from './constants';
 import { AppView } from './types';
@@ -28,6 +29,7 @@ const App = () => {
               conditioningStartDate: savedBeer.conditioningStartDate,
               status: savedBeer.status,
               kegColor: savedBeer.kegColor,
+              kegNickname: savedBeer.kegNickname,
             };
           }
           // If a product was removed from constants, we filter it out
@@ -49,7 +51,7 @@ const App = () => {
     }
   }, [trackedBeers]);
 
-  const addBeerToTrack = (productId, fermentationStartDate, kegColor) => {
+  const addBeerToTrack = (productId, fermentationStartDate, kegColor, kegNickname) => {
     const product = PINTER_PRODUCTS.find(p => p.id === productId);
     if (product) {
       const newBeer = {
@@ -59,6 +61,7 @@ const App = () => {
         conditioningStartDate: null,
         status: 'fermenting',
         kegColor: kegColor,
+        kegNickname: kegNickname,
       };
       setTrackedBeers(prevBeers => [...prevBeers, newBeer]);
     }
