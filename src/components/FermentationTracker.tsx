@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { PINTER_PRODUCTS } from '../constants';
 import BeerCard from './BeerCard';
@@ -13,18 +14,16 @@ const FermentationTracker = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBeerId, setSelectedBeerId] = useState(PINTER_PRODUCTS[0]?.id || '');
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [kegColor, setKegColor] = useState('black');
   const [kegNickname, setKegNickname] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (selectedBeerId && startDate) {
-      onAddBeer(selectedBeerId, startDate, kegColor, kegNickname);
+    if (selectedBeerId) {
+      onAddBeer(selectedBeerId, kegColor, kegNickname);
       setIsModalOpen(false);
       // Reset form
       setSelectedBeerId(PINTER_PRODUCTS[0]?.id || '');
-      setStartDate(new Date().toISOString().split('T')[0]);
       setKegColor('black');
       setKegNickname('');
     }
@@ -133,18 +132,6 @@ const FermentationTracker = ({
               />
             </div>
             
-            <div>
-              <label htmlFor="start-date" className="block text-lg font-medium text-slate-300 mb-2">
-                Fermentation Start Date
-              </label>
-              <input
-                id="start-date"
-                type="date"
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-                className="w-full text-xl bg-slate-700/50 border-slate-600 rounded-lg p-4 text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
-              />
-            </div>
           </div>
           <div className="mt-8 flex justify-end space-x-3">
             <button

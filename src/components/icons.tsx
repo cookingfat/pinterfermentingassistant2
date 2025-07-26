@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export const BarrelIcon = ({ className }) => (
@@ -63,6 +64,7 @@ export const InfoIcon = ({ className }) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
+
 export const CoffeeIcon = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
@@ -71,4 +73,10 @@ export const CoffeeIcon = ({ className }) => (
         <line x1="10" y1="1" x2="10" y2="4"></line>
         <line x1="14" y1="1" x2="14" y2="4"></line>
     </svg>
+);
+
+export const PlayIcon = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M8 5v14l11-7z" />
+  </svg>
 );

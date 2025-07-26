@@ -1,8 +1,9 @@
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import Timer from './Timer';
 import Modal from './Modal';
-import { CalendarIcon, FridgeIcon, TrashIcon, WarningIcon, InfoIcon } from './icons';
+import { CalendarIcon, FridgeIcon, TrashIcon, WarningIcon, InfoIcon, PlayIcon } from './icons';
 
 const BeerCard = ({ beer, onUpdate, onRemove }) => {
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
@@ -11,6 +12,7 @@ const BeerCard = ({ beer, onUpdate, onRemove }) => {
   const [fermentationTimerExpired, setFermentationTimerExpired] = useState(false);
 
   const recommendedConditioningDate = useMemo(() => {
+    if (!beer.fermentationStartDate) return null;
     const startDate = new Date(beer.fermentationStartDate);
     startDate.setDate(startDate.getDate() + beer.brewingDays);
     return startDate;
@@ -25,15 +27,23 @@ const BeerCard = ({ beer, onUpdate, onRemove }) => {
 
   const isEarly = useMemo(() => {
     if (fermentationTimerExpired) return false;
+    if (!recommendedConditioningDate) return true; // Should not happen in 'fermenting' state
     return new Date() < recommendedConditioningDate;
   }, [recommendedConditioningDate, fermentationTimerExpired]);
 
   useEffect(() => {
-    if (new Date() >= recommendedConditioningDate) {
+    if (recommendedConditioningDate && new Date() >= recommendedConditioningDate) {
       setFermentationTimerExpired(true);
     }
   }, [recommendedConditioningDate]);
 
+  const handleStartBrewing = () => {
+    onUpdate({
+      ...beer,
+      status: 'fermenting',
+      fermentationStartDate: new Date().toISOString(),
+    });
+  };
 
   const handleStartConditioning = () => {
     onUpdate({
@@ -60,12 +70,16 @@ const BeerCard = ({ beer, onUpdate, onRemove }) => {
   const getStatusBadge = () => {
     const baseClasses = "px-3 py-1 text-sm font-bold rounded-full shadow-md";
     switch (beer.status) {
+      case 'pending':
+        return <span className={`${baseClasses} bg-slate-600 text-white`}>Ready to Brew</span>;
       case 'fermenting':
         return <span className={`${baseClasses} bg-blue-500 text-white`}>Fermenting</span>;
       case 'conditioning':
         return <span className={`${baseClasses} bg-teal-500 text-white`}>Conditioning</span>;
       case 'ready':
          return <span className={`${baseClasses} bg-green-500 text-white`}>Ready!</span>;
+      default:
+        return null;
     }
   }
 
@@ -124,7 +138,18 @@ const BeerCard = ({ beer, onUpdate, onRemove }) => {
 
         {/* Bottom Content (pushed down by mt-auto) */}
         <div className="mt-auto">
-            {beer.status === 'fermenting' && (
+            {beer.status === 'pending' && (
+              <div className="space-y-4">
+                <button
+                    onClick={handleStartBrewing}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white text-lg font-bold py-3.5 px-4 rounded-lg hover:opacity-90 transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                    <PlayIcon className="w-6 h-6 mr-2" />
+                    Start Brewing
+                </button>
+              </div>
+            )}
+            {beer.status === 'fermenting' && recommendedConditioningDate && (
               <div className="space-y-4">
                   <Timer
                       expiryTimestamp={recommendedConditioningDate}

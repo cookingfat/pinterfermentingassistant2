@@ -51,15 +51,15 @@ const App = () => {
     }
   }, [trackedBeers]);
 
-  const addBeerToTrack = (productId, fermentationStartDate, kegColor, kegNickname) => {
+  const addBeerToTrack = (productId, kegColor, kegNickname) => {
     const product = PINTER_PRODUCTS.find(p => p.id === productId);
     if (product) {
       const newBeer = {
         ...product,
         trackingId: `${productId}-${Date.now()}`,
-        fermentationStartDate,
+        fermentationStartDate: null,
         conditioningStartDate: null,
-        status: 'fermenting',
+        status: 'pending',
         kegColor: kegColor,
         kegNickname: kegNickname,
       };
