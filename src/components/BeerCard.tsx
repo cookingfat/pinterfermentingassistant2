@@ -107,7 +107,7 @@ const BeerCard = ({ beer, onUpdate, onRemove }) => {
 
         {/* Top Content */}
         <div>
-          <h3 className="text-3xl font-bold text-white shadow-black [text-shadow:_2px_2px_6px_var(--tw-shadow-color)]">{beer.name}</h3>
+          <h3 className="text-3xl font-bold text-white shadow-black [text-shadow:_2px_2px_6px_var(--tw-shadow-color)] line-clamp-2">{beer.name}</h3>
           
           <div className="flex items-center justify-between mb-4">
             <p className="text-lg text-slate-300 shadow-black [text-shadow:_1px_1px_3px_var(--tw-shadow-color)]">{beer.style} - {beer.abv}% ABV</p>
