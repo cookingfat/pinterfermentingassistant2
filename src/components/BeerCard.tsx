@@ -1,11 +1,17 @@
 
-
 import React, { useState, useMemo, useEffect } from 'react';
 import Timer from './Timer';
 import Modal from './Modal';
 import { CalendarIcon, FridgeIcon, TrashIcon, WarningIcon, InfoIcon, PlayIcon } from './icons';
+import { TrackedBeer } from '../types';
 
-const BeerCard = ({ beer, onUpdate, onRemove }) => {
+interface BeerCardProps {
+  beer: TrackedBeer;
+  onUpdate: (beer: TrackedBeer) => void;
+  onRemove: (trackingId: string) => void;
+}
+
+const BeerCard: React.FC<BeerCardProps> = ({ beer, onUpdate, onRemove }) => {
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -126,7 +132,7 @@ const BeerCard = ({ beer, onUpdate, onRemove }) => {
             </div>
           </div>
           
-          {beer.status === 'fermenting' && (
+          {beer.status === 'fermenting' && beer.fermentationStartDate && (
             <div className="space-y-2 text-base text-slate-200 mb-2 opacity-90">
                 <div className="flex items-center">
                   <CalendarIcon className="w-4 h-4 mr-2.5 flex-shrink-0" />
