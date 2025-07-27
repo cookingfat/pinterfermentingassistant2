@@ -1,91 +1,150 @@
 
 import React, { useState, useEffect } from 'react';
 import { PINTER_PRODUCTS } from './constants';
-import { AppView } from './types';
+import { AppView, Session } from './types';
+import { supabase } from './supabaseClient';
 import Header from './components/Header';
 import FermentationTracker from './components/FermentationTracker';
 import AbvCalculator from './components/AbvCalculator';
 import Footer from './components/Footer';
+import Auth from './components/Auth';
+import { BarrelIcon } from './components/icons';
 
 const App = () => {
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [trackedBeers, setTrackedBeers] = useState([]);
   const [view, setView] = useState(AppView.Tracker);
 
   useEffect(() => {
+    setLoading(true);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      getBeers();
+    } else {
+      setTrackedBeers([]); // Clear beers on logout
+    }
+  }, [session]);
+
+  const getBeers = async () => {
     try {
-      const savedBeersJSON = localStorage.getItem('pinterTrackedBeers');
-      if (savedBeersJSON) {
-        const savedBeers = JSON.parse(savedBeersJSON);
-        
-        // Hydrate saved beers with the latest data from constants to prevent stale data
-        const hydratedBeers = savedBeers.map(savedBeer => {
-          const productInfo = PINTER_PRODUCTS.find(p => p.id === savedBeer.id);
-          if (productInfo) {
-            // Merge fresh product info with user's saved progress
-            return {
-              ...productInfo, // Fresh data from constants
-              trackingId: savedBeer.trackingId,
-              fermentationStartDate: savedBeer.fermentationStartDate,
-              conditioningStartDate: savedBeer.conditioningStartDate,
-              status: savedBeer.status,
-              kegColor: savedBeer.kegColor,
-              kegNickname: savedBeer.kegNickname,
-              // Keep the user's custom day settings if they exist
-              brewingDays: savedBeer.brewingDays || productInfo.brewingDays,
-              conditioningDays: savedBeer.conditioningDays || productInfo.conditioningDays,
-            };
-          }
-          // If a product was removed from constants, we filter it out
-          return null; 
+      const { data: beersFromDb, error } = await supabase
+        .from('beers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      if (beersFromDb) {
+        const hydratedBeers = beersFromDb.map(dbBeer => {
+          const productInfo = PINTER_PRODUCTS.find(p => p.id === dbBeer.product_id);
+          if (!productInfo) return null;
+
+          return {
+            ...productInfo,
+            trackingId: dbBeer.tracking_id,
+            fermentationStartDate: dbBeer.fermentation_start_date,
+            conditioningStartDate: dbBeer.conditioning_start_date,
+            status: dbBeer.status,
+            kegColor: dbBeer.keg_color,
+            kegNickname: dbBeer.keg_nickname,
+            brewingDays: dbBeer.brewing_days,
+            conditioningDays: dbBeer.conditioning_days,
+          };
         }).filter(b => b !== null);
 
         setTrackedBeers(hydratedBeers);
       }
     } catch (error) {
-      console.error("Failed to load or hydrate beers from local storage", error);
+      console.error("Error fetching beers:", error);
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('pinterTrackedBeers', JSON.stringify(trackedBeers));
-    } catch (error) {
-      console.error("Failed to save beers to local storage", error);
-    }
-  }, [trackedBeers]);
-
-  const addBeerToTrack = (productId, kegColor, kegNickname, brewingDays, conditioningDays) => {
+  const addBeerToTrack = async (productId, kegColor, kegNickname, brewingDays, conditioningDays) => {
+    if (!session?.user) return;
     const product = PINTER_PRODUCTS.find(p => p.id === productId);
     if (product) {
-      const newBeer = {
-        ...product,
-        brewingDays,
-        conditioningDays,
-        trackingId: `${productId}-${Date.now()}`,
-        fermentationStartDate: null,
-        conditioningStartDate: null,
+      const newBeerForDb = {
+        user_id: session.user.id,
+        tracking_id: `${productId}-${Date.now()}`,
+        product_id: productId,
         status: 'pending',
-        kegColor: kegColor,
-        kegNickname: kegNickname,
+        keg_color: kegColor,
+        keg_nickname: kegNickname,
+        brewing_days: brewingDays,
+        conditioning_days: conditioningDays,
       };
-      setTrackedBeers(prevBeers => [...prevBeers, newBeer]);
+      const { error } = await supabase.from('beers').insert(newBeerForDb);
+      if (error) {
+        console.error("Error adding beer:", error);
+      } else {
+        getBeers();
+      }
     }
   };
 
-  const updateBeer = (updatedBeer) => {
-    setTrackedBeers(prevBeers =>
-      prevBeers.map(beer => (beer.trackingId === updatedBeer.trackingId ? updatedBeer : beer))
+  const updateBeer = async (updatedBeer) => {
+    if (!session?.user) return;
+    const beerForDb = {
+      product_id: updatedBeer.id,
+      fermentation_start_date: updatedBeer.fermentationStartDate,
+      conditioning_start_date: updatedBeer.conditioningStartDate,
+      status: updatedBeer.status,
+      keg_color: updatedBeer.kegColor,
+      keg_nickname: updatedBeer.kegNickname,
+      brewing_days: updatedBeer.brewingDays,
+      conditioning_days: updatedBeer.conditioningDays,
+    };
+    const { error } = await supabase.from('beers').update(beerForDb).eq('tracking_id', updatedBeer.trackingId);
+    if (error) {
+      console.error("Error updating beer:", error);
+    } else {
+      getBeers();
+    }
+  };
+
+  const removeBeer = async (trackingId) => {
+    if (!session?.user) return;
+    const { error } = await supabase.from('beers').delete().eq('tracking_id', trackingId);
+    if (error) {
+      console.error("Error removing beer:", error);
+    } else {
+      getBeers();
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+  
+  if (loading) {
+    return (
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-center">
+            <BarrelIcon className="w-16 h-16 text-cyan-400 mb-4 animate-pulse" />
+            <h1 className="text-3xl font-bold text-slate-300">Loading your brews...</h1>
+        </div>
     );
-  };
+  }
 
-  const removeBeer = (trackingId) => {
-    setTrackedBeers(prevBeers => prevBeers.filter(beer => beer.trackingId !== trackingId));
-  };
-
+  if (!session) {
+    return <Auth />;
+  }
 
   return (
     <div className="min-h-screen bg-transparent text-slate-200 font-sans flex flex-col">
-      <Header />
+      <Header onLogout={handleLogout} />
       <main className="container mx-auto p-4 md:p-8 leading-relaxed flex-grow">
         <div className="mb-8 flex justify-center rounded-full bg-slate-800/80 p-1.5 max-w-md mx-auto border border-slate-700">
           <button
