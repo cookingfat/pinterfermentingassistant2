@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { PINTER_PRODUCTS } from './constants';
 import { AppView, Session } from './types';
@@ -8,11 +9,13 @@ import FermentationTracker from './components/FermentationTracker';
 import AbvCalculator from './components/AbvCalculator';
 import Footer from './components/Footer';
 import Auth from './components/Auth';
+import PasswordReset from './components/PasswordReset';
 import { BarrelIcon } from './components/icons';
 
 const App = () => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [trackedBeers, setTrackedBeers] = useState([]);
   const [view, setView] = useState(AppView.Tracker);
 
@@ -23,8 +26,11 @@ const App = () => {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -128,6 +134,10 @@ const App = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
+
+  const handlePasswordUpdated = () => {
+    setIsPasswordRecovery(false);
+  };
   
   if (loading) {
     return (
@@ -136,6 +146,10 @@ const App = () => {
             <h1 className="text-3xl font-bold text-slate-300">Loading your brews...</h1>
         </div>
     );
+  }
+
+  if (isPasswordRecovery) {
+    return <PasswordReset onPasswordUpdated={handlePasswordUpdated} />;
   }
 
   if (!session) {
