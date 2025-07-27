@@ -30,6 +30,9 @@ const App = () => {
               status: savedBeer.status,
               kegColor: savedBeer.kegColor,
               kegNickname: savedBeer.kegNickname,
+              // Keep the user's custom day settings if they exist
+              brewingDays: savedBeer.brewingDays || productInfo.brewingDays,
+              conditioningDays: savedBeer.conditioningDays || productInfo.conditioningDays,
             };
           }
           // If a product was removed from constants, we filter it out
@@ -51,11 +54,13 @@ const App = () => {
     }
   }, [trackedBeers]);
 
-  const addBeerToTrack = (productId, kegColor, kegNickname) => {
+  const addBeerToTrack = (productId, kegColor, kegNickname, brewingDays, conditioningDays) => {
     const product = PINTER_PRODUCTS.find(p => p.id === productId);
     if (product) {
       const newBeer = {
         ...product,
+        brewingDays,
+        conditioningDays,
         trackingId: `${productId}-${Date.now()}`,
         fermentationStartDate: null,
         conditioningStartDate: null,

@@ -1,6 +1,5 @@
 
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { PINTER_PRODUCTS } from '../constants';
 import BeerCard from './BeerCard';
 import Modal from './Modal';
@@ -17,15 +16,35 @@ const FermentationTracker = ({
   const [kegColor, setKegColor] = useState('black');
   const [kegNickname, setKegNickname] = useState('');
 
+  // State for adjustable timings
+  const [brewingDays, setBrewingDays] = useState(() => PINTER_PRODUCTS[0]?.brewingDays || 7);
+  const [conditioningDays, setConditioningDays] = useState(() => PINTER_PRODUCTS[0]?.conditioningDays || 5);
+
+  const selectedProduct = useMemo(
+    () => PINTER_PRODUCTS.find(p => p.id === selectedBeerId),
+    [selectedBeerId]
+  );
+
+  // Update default days when the selected beer changes
+  useEffect(() => {
+    if (selectedProduct) {
+      setBrewingDays(selectedProduct.brewingDays);
+      setConditioningDays(selectedProduct.conditioningDays);
+    }
+  }, [selectedProduct]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (selectedBeerId) {
-      onAddBeer(selectedBeerId, kegColor, kegNickname);
+      onAddBeer(selectedBeerId, kegColor, kegNickname, brewingDays, conditioningDays);
       setIsModalOpen(false);
-      // Reset form
-      setSelectedBeerId(PINTER_PRODUCTS[0]?.id || '');
+      // Reset form to defaults for the next use
+      const defaultProduct = PINTER_PRODUCTS[0];
+      setSelectedBeerId(defaultProduct?.id || '');
       setKegColor('black');
       setKegNickname('');
+      setBrewingDays(defaultProduct?.brewingDays || 7);
+      setConditioningDays(defaultProduct?.conditioningDays || 5);
     }
   };
 
@@ -82,6 +101,41 @@ const FermentationTracker = ({
               </select>
             </div>
             
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="brewing-days" className="block text-lg font-medium text-slate-300 mb-2">
+                  Brewing Days
+                </label>
+                <input
+                  id="brewing-days"
+                  type="number"
+                  min="1"
+                  value={brewingDays}
+                  onChange={e => setBrewingDays(Number(e.target.value))}
+                  className="w-full text-xl bg-slate-700/50 border-slate-600 rounded-lg p-4 text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+                />
+                <p className="text-sm text-slate-400 mt-1 pl-1">
+                  Rec: {selectedProduct?.brewingDays}
+                </p>
+              </div>
+              <div>
+                <label htmlFor="conditioning-days" className="block text-lg font-medium text-slate-300 mb-2">
+                  Conditioning Days
+                </label>
+                <input
+                  id="conditioning-days"
+                  type="number"
+                  min="1"
+                  value={conditioningDays}
+                  onChange={e => setConditioningDays(Number(e.target.value))}
+                  className="w-full text-xl bg-slate-700/50 border-slate-600 rounded-lg p-4 text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+                />
+                <p className="text-sm text-slate-400 mt-1 pl-1">
+                  Rec: {selectedProduct?.conditioningDays}
+                </p>
+              </div>
+            </div>
+
             <div>
                 <label className="block text-lg font-medium text-slate-300 mb-2">
                     Pinter Keg Colour
