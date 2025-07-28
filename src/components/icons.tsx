@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 
 export const BarrelIcon = ({ className }) => (
@@ -91,5 +89,11 @@ export const LogoutIcon = ({ className }) => (
 export const KeyIcon = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m-2-2a2 2 0 00-2-2m2 2a2 2 0 01-2 2m-2-2a2 2 0 00-2-2m2 2a2 2 0 002 2m7-2a9 9 0 11-18 0 9 9 0 0118 0zM4 11h16" />
+    </svg>
+);
+
+export const LoginIcon = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h12.586M7 7H5a2 2 0 00-2 2v6a2 2 0 002 2h2" />
     </svg>
 );
