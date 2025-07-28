@@ -4,16 +4,8 @@ import { PINTER_PRODUCTS } from '../constants';
 import BeerCard from './BeerCard';
 import Modal from './Modal';
 import { AddIcon, BeerIcon } from './icons';
-import { TrackedBeer } from '../types';
 
-interface FermentationTrackerProps {
-  trackedBeers: TrackedBeer[];
-  onAddBeer: (productId: string, kegColor: string, kegNickname: string, brewingDays: number, conditioningDays: number) => void;
-  onUpdateBeer: (beer: TrackedBeer) => void;
-  onRemoveBeer: (trackingId: string) => void;
-}
-
-const FermentationTracker: React.FC<FermentationTrackerProps> = ({
+const FermentationTracker = ({
   trackedBeers,
   onAddBeer,
   onUpdateBeer,
@@ -41,7 +33,7 @@ const FermentationTracker: React.FC<FermentationTrackerProps> = ({
     }
   }, [selectedProduct]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (selectedBeerId) {
       onAddBeer(selectedBeerId, kegColor, kegNickname, brewingDays, conditioningDays);
