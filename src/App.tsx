@@ -152,6 +152,7 @@ const App = () => {
         conditioningDays,
       };
       setTrackedBeers(prev => [...prev, newBeer]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
