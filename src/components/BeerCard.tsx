@@ -1,11 +1,16 @@
-
-
 import React, { useState, useMemo, useEffect } from 'react';
 import Timer from './Timer';
 import Modal from './Modal';
 import { CalendarIcon, FridgeIcon, TrashIcon, WarningIcon, InfoIcon, PlayIcon } from './icons';
+import { TrackedBeer } from '../types';
 
-const BeerCard = ({ beer, onUpdate, onRemove }) => {
+interface BeerCardProps {
+  beer: TrackedBeer;
+  onUpdate: (beer: TrackedBeer) => void;
+  onRemove: (trackingId: string) => void;
+}
+
+const BeerCard: React.FC<BeerCardProps> = ({ beer, onUpdate, onRemove }) => {
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -83,10 +88,25 @@ const BeerCard = ({ beer, onUpdate, onRemove }) => {
     }
   }
 
+  const backgroundClasses: {[key: string]: string} = {
+    'gradient-1': 'bg-gradient-to-br from-purple-500 to-indigo-600',
+    'gradient-2': 'bg-gradient-to-br from-green-400 to-teal-500',
+    'gradient-3': 'bg-gradient-to-br from-yellow-400 to-orange-500',
+    'gradient-4': 'bg-gradient-to-br from-rose-500 to-pink-600',
+    'gradient-5': 'bg-gradient-to-br from-slate-700 to-slate-900',
+  };
+
   return (
     <div className="relative rounded-2xl shadow-xl overflow-hidden h-[28rem] transition-all duration-300 border border-slate-700 hover:border-cyan-400/50 hover:shadow-cyan-400/10 group">
-      {/* Background Image */}
-      <img src={beer.imageUrl} alt={beer.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"/>
+      {/* Background Image or Gradient */}
+      {beer.isCustom && beer.background_gradient ? (
+        <div className={`absolute inset-0 w-full h-full transition-transform duration-500 group-hover:scale-105 ${backgroundClasses[beer.background_gradient] || backgroundClasses['gradient-5']}`} />
+      ) : beer.imageUrl ? (
+        <img src={beer.imageUrl} alt={beer.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"/>
+      ) : (
+        <div className={`absolute inset-0 w-full h-full transition-transform duration-500 group-hover:scale-105 ${backgroundClasses['gradient-5']}`} />
+      )}
+
       {/* Gradient Overlay for text readability */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent"></div>
       
@@ -111,22 +131,24 @@ const BeerCard = ({ beer, onUpdate, onRemove }) => {
           
           <div className="flex items-center justify-between mb-4">
             <p className="text-lg text-slate-300 shadow-black [text-shadow:_1px_1px_3px_var(--tw-shadow-color)]">{beer.style} - {beer.abv}% ABV</p>
-            <div className="text-right">
-                <div className="flex items-center gap-2 justify-end" title={`${beer.kegColor} Keg`}>
-                    <span className={`w-4 h-4 rounded-full border-2 ${
-                        beer.kegColor === 'black' ? 'bg-gray-700 border-gray-500' :
-                        beer.kegColor === 'blue' ? 'bg-blue-500 border-blue-300' :
-                        'bg-red-500 border-red-300'
-                    }`}></span>
-                    <span className="text-base font-semibold text-slate-200 capitalize shadow-black [text-shadow:_1px_1px_3px_var(--tw-shadow-color)]">{beer.kegColor} Keg</span>
-                </div>
-                {beer.kegNickname && (
-                    <p className="text-sm text-slate-400 italic shadow-black [text-shadow:_1px_1px_3px_var(--tw-shadow-color)]">"{beer.kegNickname}"</p>
-                )}
-            </div>
+            {beer.kegColor && (
+              <div className="text-right">
+                  <div className="flex items-center gap-2 justify-end" title={`${beer.kegColor} Keg`}>
+                      <span className={`w-4 h-4 rounded-full border-2 ${
+                          beer.kegColor === 'black' ? 'bg-gray-700 border-gray-500' :
+                          beer.kegColor === 'blue' ? 'bg-blue-500 border-blue-300' :
+                          'bg-red-500 border-red-300'
+                      }`}></span>
+                      <span className="text-base font-semibold text-slate-200 capitalize shadow-black [text-shadow:_1px_1px_3px_var(--tw-shadow-color)]">{beer.kegColor} Keg</span>
+                  </div>
+                  {beer.kegNickname && (
+                      <p className="text-sm text-slate-400 italic shadow-black [text-shadow:_1px_1px_3px_var(--tw-shadow-color)]">"{beer.kegNickname}"</p>
+                  )}
+              </div>
+            )}
           </div>
           
-          {beer.status === 'fermenting' && (
+          {beer.status === 'fermenting' && beer.fermentationStartDate && (
             <div className="space-y-2 text-base text-slate-200 mb-2 opacity-90">
                 <div className="flex items-center">
                   <CalendarIcon className="w-4 h-4 mr-2.5 flex-shrink-0" />

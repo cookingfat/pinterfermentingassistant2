@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { Database } from './database.types';
 
 // IMPORTANT: Replace with your Supabase project's URL and Anon Key.
 // You can get these from your Supabase project's API settings.
@@ -21,4 +22,4 @@ if (supabaseUrl === 'https://zsiqsfcvcgnsravhypdd.supabase.co' || supabaseAnonKe
 }
 
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);

@@ -1,29 +1,67 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { PINTER_PRODUCTS } from '../constants';
 import BeerCard from './BeerCard';
 import Modal from './Modal';
 import { AddIcon, BeerIcon } from './icons';
+import { TrackedBeer, CustomBrew } from '../types';
 
-const FermentationTracker = ({
+type PinterProduct = typeof PINTER_PRODUCTS[0];
+
+interface FermentationTrackerProps {
+  trackedBeers: TrackedBeer[];
+  customBrews: CustomBrew[];
+  onAddBeer: (
+    productId: string,
+    kegColor: string,
+    kegNickname: string,
+    brewingDays: number,
+    conditioningDays: number
+  ) => void;
+  onUpdateBeer: (beer: TrackedBeer) => void;
+  onRemoveBeer: (trackingId: string) => void;
+  isLoggedIn: boolean;
+}
+
+const FermentationTracker: React.FC<FermentationTrackerProps> = ({
   trackedBeers,
+  customBrews,
   onAddBeer,
   onUpdateBeer,
   onRemoveBeer,
+  isLoggedIn,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedBeerId, setSelectedBeerId] = useState(PINTER_PRODUCTS[0]?.id || '');
+  
+  const allAvailableBrews = useMemo(() => {
+    const customBrewsAsProducts = customBrews.map(cb => ({
+        ...cb,
+        brewingDays: cb.brewing_days,
+        conditioningDays: cb.conditioning_days,
+    }));
+    return [...customBrewsAsProducts, ...PINTER_PRODUCTS];
+  }, [customBrews]);
+
+  const [selectedBeerId, setSelectedBeerId] = useState('');
   const [kegColor, setKegColor] = useState('black');
   const [kegNickname, setKegNickname] = useState('');
 
-  // State for adjustable timings
-  const [brewingDays, setBrewingDays] = useState(() => PINTER_PRODUCTS[0]?.brewingDays || 7);
-  const [conditioningDays, setConditioningDays] = useState(() => PINTER_PRODUCTS[0]?.conditioningDays || 5);
-
   const selectedProduct = useMemo(
-    () => PINTER_PRODUCTS.find(p => p.id === selectedBeerId),
-    [selectedBeerId]
+    () => allAvailableBrews.find(p => p.id === selectedBeerId),
+    [selectedBeerId, allAvailableBrews]
   );
+  
+  const [brewingDays, setBrewingDays] = useState(7);
+  const [conditioningDays, setConditioningDays] = useState(5);
+
+  // Update default days and selected ID when the available brews change
+  useEffect(() => {
+    if (allAvailableBrews.length > 0 && !selectedBeerId) {
+        const firstBrew = allAvailableBrews[0];
+        setSelectedBeerId(firstBrew.id);
+        setBrewingDays(firstBrew.brewingDays);
+        setConditioningDays(firstBrew.conditioningDays);
+    }
+  }, [allAvailableBrews, selectedBeerId]);
 
   // Update default days when the selected beer changes
   useEffect(() => {
@@ -33,18 +71,31 @@ const FermentationTracker = ({
     }
   }, [selectedProduct]);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    // If the modal is opened, ensure the selected ID is valid
+    if (isModalOpen && allAvailableBrews.length > 0) {
+      const currentSelectionExists = allAvailableBrews.some(b => b.id === selectedBeerId);
+      if (!currentSelectionExists) {
+        setSelectedBeerId(allAvailableBrews[0].id);
+      }
+    }
+  }, [isModalOpen, allAvailableBrews, selectedBeerId]);
+
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedBeerId) {
       onAddBeer(selectedBeerId, kegColor, kegNickname, brewingDays, conditioningDays);
       setIsModalOpen(false);
       // Reset form to defaults for the next use
-      const defaultProduct = PINTER_PRODUCTS[0];
-      setSelectedBeerId(defaultProduct?.id || '');
+      const defaultProduct = allAvailableBrews[0];
+      if (defaultProduct) {
+        setSelectedBeerId(defaultProduct.id);
+        setBrewingDays(defaultProduct.brewingDays);
+        setConditioningDays(defaultProduct.conditioningDays);
+      }
       setKegColor('black');
       setKegNickname('');
-      setBrewingDays(defaultProduct?.brewingDays || 7);
-      setConditioningDays(defaultProduct?.conditioningDays || 5);
     }
   };
 
@@ -85,7 +136,7 @@ const FermentationTracker = ({
           <div className="space-y-6">
             <div>
               <label htmlFor="beer-select" className="block text-lg font-medium text-slate-300 mb-2">
-                Choose your Pinter Beer
+                Choose your Brew
               </label>
               <select
                 id="beer-select"
@@ -93,11 +144,22 @@ const FermentationTracker = ({
                 onChange={e => setSelectedBeerId(e.target.value)}
                 className="w-full text-xl bg-slate-700/50 border-slate-600 rounded-lg p-4 text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
               >
-                {PINTER_PRODUCTS.map(product => (
-                  <option key={product.id} value={product.id}>
-                    {product.name} - {product.style}
-                  </option>
-                ))}
+                {isLoggedIn && customBrews.length > 0 && (
+                  <optgroup label="My Custom Brews">
+                    {customBrews.map(product => (
+                      <option key={product.id} value={product.id}>
+                        {product.name} - {product.style || 'Custom'}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                <optgroup label="Pinter Products">
+                  {PINTER_PRODUCTS.map(product => (
+                    <option key={product.id} value={product.id}>
+                      {product.name} - {product.style}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
             </div>
             
@@ -141,7 +203,7 @@ const FermentationTracker = ({
                     Pinter Keg Colour
                 </label>
                 <div className="grid grid-cols-3 gap-3">
-                    {(['black', 'blue', 'red']).map(color => {
+                    {(['black', 'blue', 'red'] as const).map(color => {
                         const colorMap = {
                             black: { bg: 'bg-gray-800', border: 'border-gray-600', text: 'text-gray-200', ring: 'ring-gray-400' },
                             blue: { bg: 'bg-blue-600', border: 'border-blue-400', text: 'text-white', ring: 'ring-blue-300' },
